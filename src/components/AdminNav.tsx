@@ -24,14 +24,14 @@ export function AdminNav({ current }: AdminNavProps) {
   };
 
   return (
-    <nav className="border-b border-zinc-200 dark:border-zinc-800 mb-6">
-      <div className="flex items-start gap-3 py-3">
-        <div className="flex min-w-0 flex-1 flex-wrap gap-1">
+    <nav className="border-b border-zinc-200 dark:border-zinc-800 mb-6 -mx-3 sm:mx-0">
+      <div className="flex items-start gap-2 sm:gap-3 py-3 px-3 sm:px-0">
+        <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto overscroll-x-contain pb-0.5 sm:flex-wrap sm:overflow-visible">
           {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
-              className={`rounded-lg px-3 py-1.5 text-sm whitespace-nowrap ${
+              className={`rounded-lg px-3 py-2 sm:py-1.5 text-sm whitespace-nowrap shrink-0 ${
                 current === l.href
                   ? "bg-emerald-600 text-white"
                   : "hover:bg-zinc-100 dark:hover:bg-zinc-800"
@@ -44,7 +44,7 @@ export function AdminNav({ current }: AdminNavProps) {
         <button
           type="button"
           onClick={logout}
-          className="shrink-0 rounded-lg border border-zinc-200 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+          className="shrink-0 rounded-lg border border-zinc-200 px-3 py-2 sm:py-1.5 text-sm text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
         >
           Выйти
         </button>

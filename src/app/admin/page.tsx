@@ -64,7 +64,7 @@ export default function AdminPage() {
 
   const handlePhotoParsed = (result: {
     date: Date | null;
-    rows: { fullName: string; tasks: string; present: boolean }[];
+    rows: { fullName: string; tasks: string; present: boolean; rawLine: string }[];
   }) => {
     if (result.date) {
       setReviewDate(toDateKey(result.date));
@@ -81,6 +81,7 @@ export default function AdminPage() {
         isNew: match.isNew,
         tasks: r.tasks,
         present: r.present,
+        rawLine: r.rawLine,
       };
     });
     setReviewRows(rows);

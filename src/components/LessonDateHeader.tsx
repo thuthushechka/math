@@ -38,7 +38,7 @@ export function LessonDateHeader({
           const next = e.target.value;
           if (next && next !== date) onDateChange(lessonId, date, next);
         }}
-        className="w-[6.25rem] rounded border border-zinc-200 px-0.5 py-0.5 text-[10px] sm:text-xs dark:border-zinc-600 dark:bg-zinc-800"
+        className="w-[5.5rem] sm:w-[6.25rem] rounded border border-zinc-200 px-0.5 py-0.5 text-[10px] sm:text-xs dark:border-zinc-600 dark:bg-zinc-800"
         title="Изменить дату урока"
       />
       {onDelete && (

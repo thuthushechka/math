@@ -29,7 +29,7 @@ export function JournalYearView({
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto">
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full border-collapse text-xs min-w-[800px]">
           <thead>
             <tr className="border-b">
@@ -93,11 +93,11 @@ export function JournalYearView({
         {months.map((m, i) => (
           <div
             key={i}
-            className="rounded-lg border p-3 cursor-pointer hover:border-emerald-400"
+            className="rounded-lg border p-3 cursor-pointer hover:border-emerald-400 active:bg-emerald-50 dark:active:bg-emerald-950/30"
             onClick={() => onMonthClick(m.year, m.month)}
           >
             <div className="font-semibold mb-2">{monthName(m.month)} {m.year}</div>
-            {data.students.slice(0, 5).map((s) => {
+            {data.students.map((s) => {
               const ml = lessonsInMonth(data, m.year, m.month);
               const cnt = countPresent(data, s.id, ml.map((l) => l.id));
               if (cnt === 0) return null;

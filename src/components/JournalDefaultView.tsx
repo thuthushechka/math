@@ -83,6 +83,79 @@ export function JournalDefaultView({
     </th>
   );
 
+  const renderMonthGrid = (
+    lessons: { id: number; date: string }[],
+    studentId: number,
+    label: string,
+    accent?: boolean
+  ) => (
+    <div className={accent ? "mt-3 pt-3 border-t dark:border-zinc-700" : ""}>
+      <p className={`text-xs font-semibold mb-2 ${accent ? "text-emerald-700 dark:text-emerald-400" : "text-zinc-500"}`}>
+        {label}
+      </p>
+      {lessons.length === 0 ? (
+        <p className="text-xs text-zinc-400">Нет занятий</p>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {lessons.map((l) => (
+            <div
+              key={l.id}
+              className="flex flex-col items-center rounded-lg bg-zinc-50 dark:bg-zinc-800/50 px-2 py-1.5 min-w-[2.75rem]"
+            >
+              <span className="text-[10px] text-zinc-400 mb-0.5 leading-none">
+                {parseDateKey(l.date).getDate().toString().padStart(2, "0")}
+              </span>
+              {renderCell(studentId, l.id, l.date)}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const mobileAdminHeaders = adminMode && (prevLessons.length > 0 || currentLessons.length > 0) && (
+    <div className="md:hidden space-y-2 rounded-lg border dark:border-zinc-700 p-3 bg-zinc-50 dark:bg-zinc-800/50">
+      {prevLessons.length > 0 && (
+        <div>
+          <p className="text-xs text-zinc-500 mb-1">{monthName(prev.month)} — даты уроков</p>
+          <div className="flex gap-2 overflow-x-auto overscroll-x-contain pb-1">
+            {prevLessons.map((l) => (
+              <div key={l.id} className="shrink-0">
+                <LessonDateHeader
+                  lessonId={l.id}
+                  date={l.date}
+                  adminMode={adminMode}
+                  compact
+                  onDateChange={onLessonDateChange}
+                  onDelete={onDeleteLesson}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {currentLessons.length > 0 && (
+        <div>
+          <p className="text-xs text-emerald-700 dark:text-emerald-400 mb-1">{monthName(current.month)} — даты уроков</p>
+          <div className="flex gap-2 overflow-x-auto overscroll-x-contain pb-1">
+            {currentLessons.map((l) => (
+              <div key={l.id} className="shrink-0">
+                <LessonDateHeader
+                  lessonId={l.id}
+                  date={l.date}
+                  adminMode={adminMode}
+                  compact
+                  onDateChange={onLessonDateChange}
+                  onDelete={onDeleteLesson}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="space-y-3">
       <div className="grid gap-2 sm:grid-cols-2">
@@ -106,8 +179,51 @@ export function JournalDefaultView({
         </div>
       </div>
 
-      <p className="text-xs text-zinc-400 sm:hidden">Листайте таблицу влево →</p>
-      <div className="-mx-3 sm:mx-0 overflow-x-auto overscroll-x-contain">
+      {mobileAdminHeaders}
+
+      <div className="md:hidden space-y-3">
+        {data.students.map((student) => {
+          const prevCount = countPresent(data, student.id, prevLessons.map((l) => l.id));
+          const curCount = countPresent(data, student.id, currentLessons.map((l) => l.id));
+          return (
+            <div
+              key={student.id}
+              className="rounded-lg border dark:border-zinc-700 p-3 bg-white dark:bg-zinc-900"
+            >
+              <div className="flex items-start justify-between gap-2 mb-1">
+                <span className="font-medium text-base">{student.fullName}</span>
+                {adminMode && onDeleteStudent && (
+                  <button
+                    onClick={() => onDeleteStudent(student.id, student.fullName)}
+                    className="p-1.5 text-red-400 hover:text-red-600 shrink-0"
+                    title="Удалить ученика"
+                  >
+                    <TrashIcon className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+              {renderMonthGrid(
+                prevLessons,
+                student.id,
+                `${monthName(prev.month)} (прошлый)${showTotals ? ` · ${formatRubles(prevCount * data.pricePerLesson)}` : ` · ${prevCount} зан.`}`
+              )}
+              {renderMonthGrid(
+                currentLessons,
+                student.id,
+                `${monthName(current.month)} (текущий)`,
+                true
+              )}
+              <div className="mt-3 pt-2 border-t dark:border-zinc-700 text-sm font-semibold">
+                {showTotals
+                  ? `${curCount} зан. / ${formatRubles(curCount * data.pricePerLesson)}`
+                  : `${curCount} зан.`}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="hidden md:block -mx-3 sm:mx-0 overflow-x-auto overscroll-x-contain">
         <table className="w-full border-collapse text-sm min-w-[600px]">
           <thead>
             <tr className="border-b">

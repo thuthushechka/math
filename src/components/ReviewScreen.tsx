@@ -101,6 +101,11 @@ export function ReviewScreen({
                 {row.isFuzzy && row.matchedName && (
                   <p className="text-xs text-amber-700 mt-1">Сопоставлено с: {row.matchedName}</p>
                 )}
+                {row.rawLine && (
+                  <p className="text-xs text-zinc-400 mt-1 font-mono truncate" title={row.rawLine}>
+                    OCR: {row.rawLine}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="text-xs text-zinc-500">Задачи</label>

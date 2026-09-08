@@ -36,6 +36,7 @@ export interface ReviewRow {
   isNew: boolean;
   tasks: string;
   present: boolean;
+  rawLine?: string;
 }
 
 export interface ManualRow {

@@ -46,10 +46,10 @@ export function DayTasksModal({
         className="w-full max-w-lg rounded-xl bg-white p-4 shadow-xl dark:bg-zinc-900"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-3 gap-3">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 gap-2">
           {adminMode && onLessonDateChange ? (
-            <label className="flex items-center gap-2 text-sm font-semibold">
-              Дата урока:
+            <label className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-sm font-semibold">
+              <span>Дата урока:</span>
               <input
                 type="date"
                 value={date}
@@ -57,7 +57,7 @@ export function DayTasksModal({
                   const next = e.target.value;
                   if (next && next !== date) onLessonDateChange(lessonId, date, next);
                 }}
-                className="rounded border px-2 py-1 text-sm font-normal dark:border-zinc-600 dark:bg-zinc-800"
+                className="rounded border px-2 py-2 sm:py-1 text-base sm:text-sm font-normal dark:border-zinc-600 dark:bg-zinc-800"
               />
             </label>
           ) : (
@@ -65,7 +65,7 @@ export function DayTasksModal({
               {formatDateFull(parseDateKey(date))}
             </h3>
           )}
-          <button onClick={onClose} className="text-zinc-500 hover:text-zinc-800 text-xl">
+          <button onClick={onClose} className="self-end sm:self-auto text-zinc-500 hover:text-zinc-800 text-xl p-1">
             ×
           </button>
         </div>

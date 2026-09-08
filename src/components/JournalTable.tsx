@@ -119,18 +119,18 @@ export function JournalTable({
             <button
               key={m}
               onClick={() => setMode(m)}
-              className={`rounded-lg px-3 py-2.5 sm:py-1.5 text-sm ${
+              className={`rounded-lg px-2.5 py-2.5 sm:px-3 sm:py-1.5 text-sm ${
                 mode === m
                   ? "bg-emerald-600 text-white"
                   : "bg-zinc-100 dark:bg-zinc-800"
               }`}
             >
-              {m === "default" ? "2 месяца" : m === "month" ? "1 месяц" : m === "period" ? "3 месяца" : "Год"}
+              {m === "default" ? "2 мес." : m === "month" ? "1 мес." : m === "period" ? "3 мес." : "Год"}
             </button>
           ))}
         </div>
         {(mode === "default" || mode === "period" || mode === "month") && (
-          <div className="flex gap-2 self-end sm:self-auto">
+          <div className="flex gap-2">
             <button
               onClick={() => {
                 if (mode === "default") setPairOffset((o) => o + 1);
@@ -140,7 +140,8 @@ export function JournalTable({
                   return { year: d.getFullYear(), month: d.getMonth() };
                 });
               }}
-              className="rounded-lg bg-zinc-100 px-4 py-2.5 sm:py-1 text-base sm:text-sm dark:bg-zinc-800"
+              className="flex-1 sm:flex-none rounded-lg bg-zinc-100 px-4 py-2.5 sm:py-1 text-base sm:text-sm dark:bg-zinc-800"
+              aria-label="Предыдущий период"
             >
               ◀
             </button>
@@ -153,7 +154,8 @@ export function JournalTable({
                   return { year: d.getFullYear(), month: d.getMonth() };
                 });
               }}
-              className="rounded-lg bg-zinc-100 px-4 py-2.5 sm:py-1 text-base sm:text-sm dark:bg-zinc-800"
+              className="flex-1 sm:flex-none rounded-lg bg-zinc-100 px-4 py-2.5 sm:py-1 text-base sm:text-sm dark:bg-zinc-800"
+              aria-label="Следующий период"
             >
               ▶
             </button>

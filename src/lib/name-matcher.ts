@@ -16,26 +16,24 @@ export function normalizeFullName(surname: string, initial?: string): string {
 export function parseBoardLine(line: string): {
   surname: string;
   initial?: string;
-  digits: string;
+  taskText: string;
   fullName: string;
 } | null {
   const trimmed = line.trim();
   if (!trimmed) return null;
 
-  const regex =
-    /^([А-Яа-яЁё\-]+)(?:\s+([А-Яа-яЁё])\.?)?(?:\s+([\d\s]+))?/;
-  const match = trimmed.match(regex);
+  const nameRegex = /^([А-Яа-яЁё\-]+)(?:\s+([А-Яа-яЁё])\.?\s*)?/;
+  const match = trimmed.match(nameRegex);
   if (!match) return null;
 
   const surname = match[1];
   const initial = match[2];
-  const digitPart = match[3]?.replace(/\s/g, "") ?? "";
-  const digits = digitPart.replace(/[^\d].*$/, "").replace(/\D/g, "");
+  const taskText = trimmed.slice(match[0].length).trim();
 
   return {
     surname,
     initial,
-    digits,
+    taskText,
     fullName: normalizeFullName(surname, initial),
   };
 }

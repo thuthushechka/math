@@ -29,7 +29,6 @@ export function LessonEntryForm({ grade, maxTask, onSave, saving }: LessonEntryF
   const [dirty, setDirty] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ index: number; studentId: number | null; fullName: string } | null>(null);
   const hydratingRef = useRef(false);
-  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const studentIdsKey = students.map((s) => s.id).sort((a, b) => a - b).join(",");
 
@@ -181,45 +180,24 @@ export function LessonEntryForm({ grade, maxTask, onSave, saving }: LessonEntryF
     [rows]
   );
 
-  const persistRows = useCallback(
-    async (manual: boolean) => {
-      if (saving) return false;
-      const entries = buildEntries();
-
-      if (entries.length === 0) {
-        if (manual) alert("Отметьте хотя бы одного ученика");
-        return false;
-      }
-
-      const result = await onSave(entries, date, { silent: !manual });
-      if (result === false) return false;
-
-      const studentsRes = await fetch(`/api/students?grade=${grade}`);
-      if (studentsRes.ok) {
-        setStudents(await studentsRes.json());
-      }
-      await loadRows(date);
-      return true;
-    },
-    [saving, buildEntries, onSave, date, grade, loadRows]
-  );
-
   const handleSave = async () => {
-    await persistRows(true);
+    if (saving) return;
+    const entries = buildEntries();
+
+    if (entries.length === 0) {
+      alert("Отметьте хотя бы одного ученика");
+      return;
+    }
+
+    const result = await onSave(entries, date);
+    if (result === false) return;
+
+    const studentsRes = await fetch(`/api/students?grade=${grade}`);
+    if (studentsRes.ok) {
+      setStudents(await studentsRes.json());
+    }
+    await loadRows(date);
   };
-
-  useEffect(() => {
-    if (loading || hydratingRef.current || !dirty || !canSave || saving) return;
-
-    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-    autoSaveTimerRef.current = setTimeout(() => {
-      void persistRows(false);
-    }, 700);
-
-    return () => {
-      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-    };
-  }, [dirty, canSave, rows, loading, saving, persistRows]);
 
   const handleNameKeyDown = (index: number, e: React.KeyboardEvent) => {
     if (e.key !== "Enter") return;
@@ -260,9 +238,11 @@ export function LessonEntryForm({ grade, maxTask, onSave, saving }: LessonEntryF
         >
           {saving ? "Сохранение…" : "Сохранить"}
         </button>
-        <span className="text-xs text-zinc-500">
-          {saving ? "Сохраняем…" : dirty ? "Есть несохранённые изменения" : "Сохранено"}
-        </span>
+        {dirty && !saving && (
+          <span className="text-xs font-medium text-red-600 dark:text-red-400">
+            Есть несохранённые изменения
+          </span>
+        )}
         <button
           type="button"
           onClick={addRow}
@@ -350,8 +330,8 @@ export function LessonEntryForm({ grade, maxTask, onSave, saving }: LessonEntryF
       </div>
 
       <p className="text-xs text-zinc-400">
-        Выбор задачи автоматически отмечает посещение и сохраняет данные. Без задач — поставьте галочку вручную.
-        Кнопка «Сохранить» — для ручного сохранения изменений.
+        Выбор задачи автоматически отмечает посещение. Без задач — поставьте галочку вручную.
+        Нажмите «Сохранить», чтобы записать изменения.
       </p>
 
       <ConfirmDelete

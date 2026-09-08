@@ -57,10 +57,88 @@ export function JournalMonthView({
     0
   );
 
+  const mobileLessonDates = adminMode && monthLessons.length > 0 && (
+    <div className="flex gap-2 overflow-x-auto overscroll-x-contain pb-1">
+      {monthLessons.map((l) => (
+        <div key={l.id} className="shrink-0">
+          <LessonDateHeader
+            lessonId={l.id}
+            date={l.date}
+            adminMode={adminMode}
+            onDateChange={onLessonDateChange}
+            onDelete={onDeleteLesson}
+          />
+        </div>
+      ))}
+    </div>
+  );
+
   return (
-    <div className="-mx-3 sm:mx-0 overflow-x-auto overscroll-x-contain">
-      <h3 className="mb-2 px-3 sm:px-0 text-base sm:text-sm font-semibold">{monthName(month)} {year}</h3>
-      <p className="mb-2 px-3 sm:px-0 text-xs text-zinc-400 sm:hidden">Листайте таблицу влево →</p>
+    <div>
+      <h3 className="mb-3 text-base sm:text-sm font-semibold">{monthName(month)} {year}</h3>
+
+      <div className="md:hidden space-y-3">
+        {mobileLessonDates}
+        {data.students.map((student) => {
+          const cnt = countPresent(data, student.id, monthLessons.map((l) => l.id));
+          return (
+            <div
+              key={student.id}
+              className="rounded-lg border dark:border-zinc-700 p-3 bg-white dark:bg-zinc-900"
+            >
+              <div className="flex items-start justify-between gap-2 mb-3">
+                <span className="font-medium text-base">{student.fullName}</span>
+                {adminMode && onDeleteStudent && (
+                  <button
+                    onClick={() => onDeleteStudent(student.id, student.fullName)}
+                    className="p-1.5 text-red-400 hover:text-red-600 shrink-0"
+                    title="Удалить ученика"
+                  >
+                    <TrashIcon className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+              {monthLessons.length === 0 ? (
+                <p className="text-sm text-zinc-400">Нет занятий в этом месяце</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {monthLessons.map((l) => (
+                    <div
+                      key={l.id}
+                      className="flex flex-col items-center rounded-lg bg-zinc-50 dark:bg-zinc-800/50 px-2 py-1.5 min-w-[2.75rem]"
+                    >
+                      <span className="text-[10px] text-zinc-400 mb-0.5 leading-none">
+                        {parseDateKey(l.date).getDate().toString().padStart(2, "0")}
+                      </span>
+                      {renderCell(student.id, l.id, l.date)}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="mt-3 pt-2 border-t dark:border-zinc-700 flex flex-wrap justify-between gap-x-4 gap-y-1 text-sm">
+                <span>
+                  Зан.: <strong>{cnt}</strong>
+                </span>
+                {showTotals && (
+                  <span>
+                    К оплате: <strong>{formatRubles(cnt * data.pricePerLesson)}</strong>
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+        {showTotals && data.students.length > 0 && (
+          <div className="rounded-lg bg-zinc-50 dark:bg-zinc-800 p-3 font-semibold flex flex-wrap justify-between gap-2 text-sm">
+            <span>Итого класса</span>
+            <span>
+              {classTotal} зан. · {formatRubles(classTotal * data.pricePerLesson)}
+            </span>
+          </div>
+        )}
+      </div>
+
+      <div className="hidden md:block -mx-3 sm:mx-0 overflow-x-auto overscroll-x-contain">
       <table className="w-full border-collapse text-sm min-w-[520px]">
         <thead>
           <tr className="border-b">
@@ -131,6 +209,7 @@ export function JournalMonthView({
           )}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
