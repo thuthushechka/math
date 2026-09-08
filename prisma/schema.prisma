@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Student {
+  id        Int           @id @default(autoincrement())
+  fullName  String
+  grade     Int
+  active    Boolean       @default(true)
+  deletedAt DateTime?
+  createdAt DateTime      @default(now())
+  entries   LessonEntry[]
+
+  @@index([grade, deletedAt])
+}
+
+model Lesson {
+  id        Int           @id @default(autoincrement())
+  date      DateTime
+  grade     Int
+  note      String        @default("")
+  deletedAt DateTime?
+  createdAt DateTime      @default(now())
+  entries   LessonEntry[]
+
+  @@unique([date, grade])
+  @@index([grade, deletedAt])
+}
+
+model LessonEntry {
+  id        Int       @id @default(autoincrement())
+  present   Boolean   @default(true)
+  tasks     String    @default("")
+  studentId Int
+  lessonId  Int
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  student   Student   @relation(fields: [studentId], references: [id])
+  lesson    Lesson    @relation(fields: [lessonId], references: [id])
+
+  @@unique([studentId, lessonId])
+  @@index([deletedAt])
+}
+
+model Settings {
+  id                  Int    @id @default(1)
+  pricePerLesson      Int    @default(1200)
+  maxTaskNumber       Int    @default(20)
+  adminLogin          String @default("admin")
+  adminPasswordHash   String
+  parentLogin         String @default("math")
+  parentPasswordHash  String
+}

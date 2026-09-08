@@ -1,0 +1,7 @@
+{
+  "framework_hint": "nextjs",
+  "build_cmd": "npm run build",
+  "output_dir": ".next",
+  "analytics_enabled": false,
+  "env_vars": {}
+}
