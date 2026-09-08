@@ -26,7 +26,7 @@ export interface JournalData {
   entries: JournalEntry[];
 }
 
-export type ViewMode = "default" | "month" | "period" | "year";
+export type ViewMode = "default" | "month" | "year";
 
 export interface ReviewRow {
   boardName: string;

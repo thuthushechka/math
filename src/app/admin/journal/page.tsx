@@ -14,11 +14,13 @@ export default function AdminJournalPage() {
   const [data, setData] = useState<JournalData | null>(null);
   const [clearOpen, setClearOpen] = useState(false);
 
-  const load = useCallback(() => {
-    fetch(`/api/journal?grade=${grade}`)
-      .then((r) => r.json())
-      .then(setData)
-      .catch(console.error);
+  const load = useCallback(async () => {
+    try {
+      const r = await fetch(`/api/journal?grade=${grade}`, { cache: "no-store" });
+      setData(await r.json());
+    } catch (e) {
+      console.error(e);
+    }
   }, [grade]);
 
   useEffect(() => {

@@ -1,11 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { JournalData, ViewMode } from "@/lib/types";
-import { getPrevCurrentMonths, getSchoolYearMonths } from "@/lib/dates";
+import {
+  getPrevCurrentMonths,
+  getSchoolYearMonths,
+  parseDateKey,
+  isDateKeyAfterToday,
+} from "@/lib/dates";
 import { JournalDefaultView } from "./JournalDefaultView";
 import { JournalMonthView } from "./JournalMonthView";
-import { JournalPeriodView } from "./JournalPeriodView";
 import { JournalYearView } from "./JournalYearView";
 import { DayTasksModal } from "./DayTasksModal";
 import { ConfirmDelete } from "./ConfirmDelete";
@@ -15,7 +19,7 @@ interface JournalTableProps {
   defaultMode?: ViewMode;
   showTotals?: boolean;
   adminMode?: boolean;
-  onRefresh?: () => void;
+  onRefresh?: () => void | Promise<void>;
 }
 
 export function JournalTable({
@@ -25,12 +29,15 @@ export function JournalTable({
   adminMode = false,
   onRefresh,
 }: JournalTableProps) {
+  const [journalData, setJournalData] = useState(data);
+  useEffect(() => {
+    setJournalData(data);
+  }, [data]);
+
   const [mode, setMode] = useState<ViewMode>(defaultMode);
   const { prev, current } = getPrevCurrentMonths();
   const [pairOffset, setPairOffset] = useState(0);
   const [monthView, setMonthView] = useState({ year: current.year, month: current.month });
-  const [periodStart, setPeriodStart] = useState(current.month);
-  const [periodYear, setPeriodYear] = useState(current.year);
   const [modal, setModal] = useState<{ lessonId: number; date: string } | null>(null);
   const [deleteLesson, setDeleteLesson] = useState<{ id: number; date: string } | null>(null);
   const [deleteStudent, setDeleteStudent] = useState<{ id: number; fullName: string } | null>(null);
@@ -41,11 +48,6 @@ export function JournalTable({
     prev: { year: pairPrev.getFullYear(), month: pairPrev.getMonth() },
     current: { year: pairCurrent.getFullYear(), month: pairCurrent.getMonth() },
   };
-
-  const periodMonths = [0, 1, 2].map((i) => {
-    const d = new Date(periodYear, periodStart + i, 1);
-    return { year: d.getFullYear(), month: d.getMonth() };
-  });
 
   const schoolMonths = getSchoolYearMonths();
 
@@ -74,20 +76,39 @@ export function JournalTable({
     _oldDate: string,
     newDate: string
   ) => {
+    if (isDateKeyAfterToday(newDate)) {
+      alert("Нельзя выбрать дату позже сегодняшнего дня");
+      return;
+    }
+
     const res = await fetch("/api/lessons", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ lessonId, date: newDate }),
     });
-    const data = await res.json().catch(() => ({}));
+    const payload = await res.json().catch(() => ({}));
     if (!res.ok) {
-      alert(data.error ?? "Не удалось изменить дату урока");
+      alert(payload.error ?? "Не удалось изменить дату урока");
       return;
     }
-    if (modal?.lessonId === lessonId) {
-      setModal({ lessonId, date: newDate });
+
+    const savedDate = typeof payload.date === "string" ? payload.date : newDate;
+    setJournalData((prev) => ({
+      ...prev,
+      lessons: prev.lessons
+        .map((l) => (l.id === lessonId ? { ...l, date: savedDate } : l))
+        .sort((a, b) => a.date.localeCompare(b.date)),
+    }));
+
+    const target = parseDateKey(savedDate);
+    if (mode === "month") {
+      setMonthView({ year: target.getFullYear(), month: target.getMonth() });
     }
-    onRefresh?.();
+
+    if (modal?.lessonId === lessonId) {
+      setModal({ lessonId, date: savedDate });
+    }
+    await onRefresh?.();
   };
 
   const handleDeleteStudent = async () => {
@@ -114,8 +135,8 @@ export function JournalTable({
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-          {(["default", "month", "period", "year"] as ViewMode[]).map((m) => (
+        <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap">
+          {(["default", "month", "year"] as ViewMode[]).map((m) => (
             <button
               key={m}
               onClick={() => setMode(m)}
@@ -125,16 +146,15 @@ export function JournalTable({
                   : "bg-zinc-100 dark:bg-zinc-800"
               }`}
             >
-              {m === "default" ? "2 мес." : m === "month" ? "1 мес." : m === "period" ? "3 мес." : "Год"}
+              {m === "default" ? "2 мес." : m === "month" ? "1 мес." : "Год"}
             </button>
           ))}
         </div>
-        {(mode === "default" || mode === "period" || mode === "month") && (
+        {(mode === "default" || mode === "month") && (
           <div className="flex gap-2">
             <button
               onClick={() => {
                 if (mode === "default") setPairOffset((o) => o + 1);
-                else if (mode === "period") setPeriodStart((s) => s - 3);
                 else setMonthView((m) => {
                   const d = new Date(m.year, m.month - 1, 1);
                   return { year: d.getFullYear(), month: d.getMonth() };
@@ -148,7 +168,6 @@ export function JournalTable({
             <button
               onClick={() => {
                 if (mode === "default") setPairOffset((o) => Math.max(0, o - 1));
-                else if (mode === "period") setPeriodStart((s) => s + 3);
                 else setMonthView((m) => {
                   const d = new Date(m.year, m.month + 1, 1);
                   return { year: d.getFullYear(), month: d.getMonth() };
@@ -165,7 +184,7 @@ export function JournalTable({
 
       {mode === "default" && (
         <JournalDefaultView
-          data={data}
+          data={journalData}
           prev={pair.prev}
           current={pair.current}
           onCellClick={handleCellClick}
@@ -178,7 +197,7 @@ export function JournalTable({
       )}
       {mode === "month" && (
         <JournalMonthView
-          data={data}
+          data={journalData}
           year={monthView.year}
           month={monthView.month}
           onCellClick={handleCellClick}
@@ -189,17 +208,9 @@ export function JournalTable({
           onDeleteStudent={(id, fullName) => setDeleteStudent({ id, fullName })}
         />
       )}
-      {mode === "period" && (
-        <JournalPeriodView
-          data={data}
-          months={periodMonths}
-          onCellClick={handleCellClick}
-          showTotals={showTotals}
-        />
-      )}
       {mode === "year" && (
         <JournalYearView
-          data={data}
+          data={journalData}
           months={schoolMonths}
           onMonthClick={handleMonthClick}
           showTotals={showTotals}
@@ -210,7 +221,7 @@ export function JournalTable({
         open={!!modal}
         date={modal?.date ?? null}
         lessonId={modal?.lessonId ?? null}
-        data={data}
+        data={journalData}
         onClose={() => setModal(null)}
         adminMode={adminMode}
         onDeleteEntry={handleDeleteEntry}

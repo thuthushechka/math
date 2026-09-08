@@ -4,7 +4,12 @@ import { requireAdmin } from "@/lib/auth";
 import { notDeleted } from "@/lib/soft-delete";
 import { tasksToString, tasksFromString } from "@/lib/task-digits";
 import { matchStudent, sortStudents } from "@/lib/name-matcher";
-import { dayBoundsFromKey, lessonDateFromKey, toDateKey } from "@/lib/dates";
+import {
+  dayBoundsFromKey,
+  isDateKeyAfterToday,
+  lessonDateFromKey,
+  toDateKey,
+} from "@/lib/dates";
 
 export async function GET(request: Request) {
   try {
@@ -156,6 +161,13 @@ export async function PATCH(request: Request) {
 
     if (!lessonId || !date) {
       return NextResponse.json({ error: "lessonId and date required" }, { status: 400 });
+    }
+
+    if (isDateKeyAfterToday(date)) {
+      return NextResponse.json(
+        { error: "Нельзя выбрать дату позже сегодняшнего дня" },
+        { status: 400 }
+      );
     }
 
     const lesson = await prisma.lesson.findFirst({

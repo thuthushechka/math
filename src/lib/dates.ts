@@ -112,3 +112,7 @@ export function isPastOrToday(date: Date): boolean {
   today.setHours(23, 59, 59, 999);
   return date <= today;
 }
+
+export function isDateKeyAfterToday(key: string): boolean {
+  return key > todayKey();
+}
