@@ -49,3 +49,5 @@ next-env.d.ts
 
 # Layero local state
 .layero/cache/
+
+.vercel

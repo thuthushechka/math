@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { verifyLogin, createSession } from "@/lib/auth";
+import { ensureDb } from "@/lib/ensure-db";
 
 export async function POST(request: Request) {
   try {
+    await ensureDb();
     const { login, password } = await request.json();
     if (!login || !password) {
       return NextResponse.json({ error: "Введите логин и пароль" }, { status: 400 });

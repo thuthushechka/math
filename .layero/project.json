@@ -3,5 +3,9 @@
   "build_cmd": "npm run build",
   "output_dir": ".next",
   "analytics_enabled": false,
-  "env_vars": {}
+  "env_vars": {},
+  "project_id": "5ae97ad2-4dda-4b25-abc9-45153157c49a",
+  "slug": "math-club",
+  "organization_slug": "math",
+  "apex_hostname": "math-club.layero.app"
 }
